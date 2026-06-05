@@ -1,1098 +1,1137 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  LayoutDashboard, Users, ShoppingCart, FileText, 
-  Settings, LogOut, Plus, Trash2, Edit, Check, 
-  X, AlertTriangle, TrendingUp, DollarSign, Package,
-  Briefcase, Calculator, Building, UserCheck
-} from 'lucide-react';
-
-// --- i18n Translations ---
-const dict = {
-  ar: {
-    appTitle: 'نظام إدارة روبوتيك',
-    login: 'تسجيل الدخول',
-    admin: 'المدير (Admin)',
-    secretary: 'السكرتير (Secretary)',
-    dashboard: 'لوحة القيادة',
-    clients: 'العملاء',
-    inventory: 'المخزون والخدمات',
-    invoices: 'الفواتير والمبيعات',
-    financials: 'التقارير المالية',
-    hr: 'الموارد البشرية',
-    settings: 'الإعدادات',
-    logout: 'خروج',
-    add: 'إضافة',
-    save: 'حفظ',
-    cancel: 'إلغاء',
-    delete: 'حذف',
-    edit: 'تعديل',
-    confirmDelete: 'هل أنت متأكد من عملية الحذف؟ لا يمكن التراجع.',
-    name: 'الاسم',
-    category: 'الفئة',
-    phone: 'رقم الهاتف',
-    email: 'البريد الإلكتروني',
-    type: 'النوع',
-    qty: 'الكمية',
-    cost: 'التكلفة',
-    price: 'السعر',
-    tangible: 'منتج ملموس',
-    service: 'خدمة',
-    date: 'التاريخ',
-    total: 'الإجمالي',
-    paid: 'المدفوع',
-    status: 'الحالة',
-    unpaid: 'غير مدفوع',
-    partial: 'دفع جزئي',
-    paid_full: 'مدفوع بالكامل',
-    pending: 'قيد الانتظار',
-    delivered: 'تم التسليم',
-    eInvoice: 'فاتورة إلكترونية',
-    expenses: 'المصروفات',
-    assets: 'الأصول (CAPEX)',
-    payroll: 'الرواتب',
-    revenue: 'الإيرادات',
-    cogs: 'تكلفة المبيعات (COGS)',
-    netProfit: 'صافي الربح',
-    cashBasis: 'الأساس النقدي (Cash)',
-    accrualBasis: 'أساس الاستحقاق (Accrual)',
-    baseSalary: 'الراتب الأساسي',
-    incentives: 'الحوافز',
-    deductions: 'الخصومات',
-    netSalary: 'الصافي',
-    assetLifespan: 'العمر الافتراضي (سنوات)',
-    monthlyDepreciation: 'الإهلاك الشهري',
-    stockAlert: 'تنبيه المخزون',
-    outOfStock: 'نفد من المخزون',
-    createInvoice: 'إنشاء فاتورة جديدة',
-    selectClient: 'اختر العميل',
-    selectProduct: 'اختر المنتج/الخدمة',
-    addAtLeastOneItem: 'يجب إضافة عنصر واحد على الأقل',
-    insufficientStock: 'الكمية غير متوفرة في المخزون للمنتج:',
-    operationsDashboard: 'لوحة العمليات',
-    investorDashboard: 'لوحة المستثمرين',
-    username: 'اسم المستخدم',
-    password: 'كلمة المرور',
-    invalidCredentials: 'اسم المستخدم أو كلمة المرور غير صحيحة',
-    loginBtn: 'دخول',
-  },
-  en: {
-    appTitle: 'ROBOTECH ERP',
-    login: 'Login',
-    admin: 'Admin / CEO',
-    secretary: 'Secretary / Data Entry',
-    dashboard: 'Dashboard',
-    clients: 'Clients',
-    inventory: 'Inventory & Services',
-    invoices: 'Invoices & Sales',
-    financials: 'Financial Intelligence',
-    hr: 'HR & Payroll',
-    settings: 'Settings',
-    logout: 'Logout',
-    add: 'Add',
-    save: 'Save',
-    cancel: 'Cancel',
-    delete: 'Delete',
-    edit: 'Edit',
-    confirmDelete: 'Are you sure you want to delete this record? This cannot be undone.',
-    name: 'Name',
-    category: 'Category',
-    phone: 'Phone',
-    email: 'Email',
-    type: 'Type',
-    qty: 'Quantity',
-    cost: 'Cost',
-    price: 'Price',
-    tangible: 'Tangible Product',
-    service: 'Service',
-    date: 'Date',
-    total: 'Total',
-    paid: 'Paid Amount',
-    status: 'Status',
-    unpaid: 'Unpaid',
-    partial: 'Partial',
-    paid_full: 'Paid in Full',
-    pending: 'Pending',
-    delivered: 'Delivered',
-    eInvoice: 'E-Invoice',
-    expenses: 'Expenses (OpEx)',
-    assets: 'Assets (CAPEX)',
-    payroll: 'Payroll',
-    revenue: 'Revenue',
-    cogs: 'Cost of Goods Sold (COGS)',
-    netProfit: 'Net Profit',
-    cashBasis: 'Cash Basis',
-    accrualBasis: 'Accrual Basis',
-    baseSalary: 'Base Salary',
-    incentives: 'Incentives',
-    deductions: 'Deductions',
-    netSalary: 'Net Salary',
-    assetLifespan: 'Lifespan (Years)',
-    monthlyDepreciation: 'Monthly Depreciation',
-    stockAlert: 'Stock Alert',
-    outOfStock: 'Out of Stock',
-    createInvoice: 'Create New Invoice',
-    selectClient: 'Select Client',
-    selectProduct: 'Select Product/Service',
-    addAtLeastOneItem: 'Add at least one item',
-    insufficientStock: 'Insufficient stock for product:',
-    operationsDashboard: 'Operations Dashboard',
-    investorDashboard: 'Investor Dashboard',
-    username: 'Username',
-    password: 'Password',
-    invalidCredentials: 'Invalid username or password',
-    loginBtn: 'Sign In',
-  }
-};
-
-// --- Mock Initial Data ---
-const initialData = {
-  clients: [
-    { id: 1, name: 'Ahmed Student', category: 'Student', phone: '01011122233', email: 'ahmed@student.com' },
-    { id: 2, name: 'Tech Startup X', category: 'Startup', phone: '01222233344', email: 'info@techx.com' },
-  ],
-  products: [
-    { id: 1, type: 'tangible', name: 'Arduino Uno R3', qty: 50, cost: 200, price: 350 },
-    { id: 2, type: 'tangible', name: 'Raspberry Pi 4', qty: 5, cost: 1500, price: 2200 },
-    { id: 3, type: 'service', name: 'Advanced Robotics Course', qty: 9999, cost: 500, price: 2000 }, // cost here could be trainer fee
-  ],
-  invoices: [],
-  expenses: [
-    { id: 1, name: 'Monthly Rent', amount: 5000, date: '2023-10-01' },
-    { id: 2, name: 'Electricity Bill', amount: 800, date: '2023-10-05' },
-  ],
-  assets: [
-    { id: 1, name: '3D Printer', value: 30000, lifespan: 5, date: '2023-01-15' },
-  ],
-  employees: [
-    { id: 1, name: 'Mona (Secretary)', baseSalary: 4000, incentives: 500, deductions: 0 },
-    { id: 2, name: 'Khaled (Trainer)', baseSalary: 6000, incentives: 0, deductions: 200 },
-  ]
-};
-
-// --- Custom UI Components ---
-const Modal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold">{title}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full"><X size={20} /></button>
-        </div>
-        <div className="p-4 flex-1">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ConfirmModal = ({ isOpen, onClose, onConfirm, message, t }) => (
-  <Modal isOpen={isOpen} onClose={onClose} title={t('delete')}>
-    <div className="flex flex-col items-center p-4">
-      <AlertTriangle size={48} className="text-red-500 mb-4" />
-      <p className="text-lg text-center mb-6">{message}</p>
-      <div className="flex gap-4 w-full justify-center">
-        <button onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">{t('cancel')}</button>
-        <button onClick={() => { onConfirm(); onClose(); }} className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">{t('delete')}</button>
-      </div>
-    </div>
-  </Modal>
-);
-
-// --- Main Application Component ---
-export default function App() {
-  const [lang, setLang] = useState('ar');
-  const t = (key) => dict[lang][key] || key;
-  const isRTL = lang === 'ar';
-
-  const [user, setUser] = useState(null); // { role: 'admin' | 'secretary', name: string }
-  const [view, setView] = useState('dashboard');
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robotech ERP</title>
   
-  // Login State
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [loginError, setLoginError] = useState('');
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel (لترجمة كود React داخل المتصفح) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  // Valid Users Data
-  const VALID_USERS = {
-    'admin': { password: '123', role: 'admin', name: 'System Admin' },
-    'mona': { password: '123', role: 'secretary', name: 'Mona (Secretary)' }
-  };
+  <style>
+    /* تحسينات خطوط عامة */
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    body { font-family: 'Cairo', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 m-0 p-0 overflow-hidden">
+  <div id="root"></div>
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const userRecord = VALID_USERS[credentials.username.toLowerCase()];
-    if (userRecord && userRecord.password === credentials.password) {
-      setUser({ role: userRecord.role, name: userRecord.name });
-      setLoginError('');
-      setCredentials({ username: '', password: '' }); // reset form
-    } else {
-      setLoginError(t('invalidCredentials'));
-    }
-  };
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
 
-  // App State
-  const [db, setDb] = useState(initialData);
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null });
+    // --- i18n Translations ---
+    const dict = {
+      ar: {
+        appTitle: 'نظام إدارة روبوتيك',
+        login: 'تسجيل الدخول',
+        admin: 'المدير (Admin)',
+        secretary: 'السكرتير (Secretary)',
+        dashboard: 'لوحة القيادة',
+        clients: 'العملاء',
+        inventory: 'المخزون والخدمات',
+        invoices: 'الفواتير والمبيعات',
+        financials: 'التقارير المالية',
+        hr: 'الموارد البشرية',
+        settings: 'الإعدادات',
+        logout: 'خروج',
+        add: 'إضافة',
+        save: 'حفظ',
+        cancel: 'إلغاء',
+        delete: 'حذف',
+        edit: 'تعديل',
+        confirmDelete: 'هل أنت متأكد من عملية الحذف؟ لا يمكن التراجع.',
+        name: 'الاسم',
+        category: 'الفئة',
+        phone: 'رقم الهاتف',
+        email: 'البريد الإلكتروني',
+        type: 'النوع',
+        qty: 'الكمية',
+        cost: 'التكلفة',
+        price: 'السعر',
+        tangible: 'منتج ملموس',
+        service: 'خدمة',
+        date: 'التاريخ',
+        total: 'الإجمالي',
+        paid: 'المدفوع',
+        status: 'الحالة',
+        unpaid: 'غير مدفوع',
+        partial: 'دفع جزئي',
+        paid_full: 'مدفوع بالكامل',
+        pending: 'قيد الانتظار',
+        delivered: 'تم التسليم',
+        eInvoice: 'فاتورة إلكترونية',
+        expenses: 'المصروفات',
+        assets: 'الأصول (CAPEX)',
+        payroll: 'الرواتب',
+        revenue: 'الإيرادات',
+        cogs: 'تكلفة المبيعات (COGS)',
+        netProfit: 'صافي الربح',
+        cashBasis: 'الأساس النقدي (Cash)',
+        accrualBasis: 'أساس الاستحقاق (Accrual)',
+        baseSalary: 'الراتب الأساسي',
+        incentives: 'الحوافز',
+        deductions: 'الخصومات',
+        netSalary: 'الصافي',
+        assetLifespan: 'العمر الافتراضي (سنوات)',
+        monthlyDepreciation: 'الإهلاك الشهري',
+        stockAlert: 'تنبيه المخزون',
+        outOfStock: 'نفد من المخزون',
+        createInvoice: 'إنشاء فاتورة جديدة',
+        selectClient: 'اختر العميل',
+        selectProduct: 'اختر المنتج/الخدمة',
+        addAtLeastOneItem: 'يجب إضافة عنصر واحد على الأقل',
+        insufficientStock: 'الكمية غير متوفرة في المخزون للمنتج:',
+        operationsDashboard: 'لوحة العمليات',
+        investorDashboard: 'لوحة المستثمرين',
+        username: 'اسم المستخدم',
+        password: 'كلمة المرور',
+        invalidCredentials: 'اسم المستخدم أو كلمة المرور غير صحيحة',
+        loginBtn: 'دخول',
+      },
+      en: {
+        appTitle: 'ROBOTECH ERP',
+        login: 'Login',
+        admin: 'Admin / CEO',
+        secretary: 'Secretary / Data Entry',
+        dashboard: 'Dashboard',
+        clients: 'Clients',
+        inventory: 'Inventory & Services',
+        invoices: 'Invoices & Sales',
+        financials: 'Financial Intelligence',
+        hr: 'HR & Payroll',
+        settings: 'Settings',
+        logout: 'Logout',
+        add: 'Add',
+        save: 'Save',
+        cancel: 'Cancel',
+        delete: 'Delete',
+        edit: 'Edit',
+        confirmDelete: 'Are you sure you want to delete this record? This cannot be undone.',
+        name: 'Name',
+        category: 'Category',
+        phone: 'Phone',
+        email: 'Email',
+        type: 'Type',
+        qty: 'Quantity',
+        cost: 'Cost',
+        price: 'Price',
+        tangible: 'Tangible Product',
+        service: 'Service',
+        date: 'Date',
+        total: 'Total',
+        paid: 'Paid Amount',
+        status: 'Status',
+        unpaid: 'Unpaid',
+        partial: 'Partial',
+        paid_full: 'Paid in Full',
+        pending: 'Pending',
+        delivered: 'Delivered',
+        eInvoice: 'E-Invoice',
+        expenses: 'Expenses (OpEx)',
+        assets: 'Assets (CAPEX)',
+        payroll: 'Payroll',
+        revenue: 'Revenue',
+        cogs: 'Cost of Goods Sold (COGS)',
+        netProfit: 'Net Profit',
+        cashBasis: 'Cash Basis',
+        accrualBasis: 'Accrual Basis',
+        baseSalary: 'Base Salary',
+        incentives: 'Incentives',
+        deductions: 'Deductions',
+        netSalary: 'Net Salary',
+        assetLifespan: 'Lifespan (Years)',
+        monthlyDepreciation: 'Monthly Depreciation',
+        stockAlert: 'Stock Alert',
+        outOfStock: 'Out of Stock',
+        createInvoice: 'Create New Invoice',
+        selectClient: 'Select Client',
+        selectProduct: 'Select Product/Service',
+        addAtLeastOneItem: 'Add at least one item',
+        insufficientStock: 'Insufficient stock for product:',
+        operationsDashboard: 'Operations Dashboard',
+        investorDashboard: 'Investor Dashboard',
+        username: 'Username',
+        password: 'Password',
+        invalidCredentials: 'Invalid username or password',
+        loginBtn: 'Sign In',
+      }
+    };
 
-  const confirmDelete = (action) => {
-    setConfirmDialog({ isOpen: true, onConfirm: action });
-  };
+    // --- Mock Initial Data ---
+    const initialData = {
+      clients: [
+        { id: 1, name: 'Ahmed Student', category: 'Student', phone: '01011122233', email: 'ahmed@student.com' },
+        { id: 2, name: 'Tech Startup X', category: 'Startup', phone: '01222233344', email: 'info@techx.com' },
+      ],
+      products: [
+        { id: 1, type: 'tangible', name: 'Arduino Uno R3', qty: 50, cost: 200, price: 350 },
+        { id: 2, type: 'tangible', name: 'Raspberry Pi 4', qty: 5, cost: 1500, price: 2200 },
+        { id: 3, type: 'service', name: 'Advanced Robotics Course', qty: 9999, cost: 500, price: 2000 },
+      ],
+      invoices: [],
+      expenses: [
+        { id: 1, name: 'Monthly Rent', amount: 5000, date: '2023-10-01' },
+        { id: 2, name: 'Electricity Bill', amount: 800, date: '2023-10-05' },
+      ],
+      assets: [
+        { id: 1, name: '3D Printer', value: 30000, lifespan: 5, date: '2023-01-15' },
+      ],
+      employees: [
+        { id: 1, name: 'Mona (Secretary)', baseSalary: 4000, incentives: 500, deductions: 0 },
+        { id: 2, name: 'Khaled (Trainer)', baseSalary: 6000, incentives: 0, deductions: 200 },
+      ]
+    };
 
-  // State Updaters
-  const addRecord = (collection, record) => {
-    setDb(prev => ({ ...prev, [collection]: [...prev[collection], { ...record, id: Date.now() }] }));
-  };
-  const updateRecord = (collection, id, updatedFields) => {
-    setDb(prev => ({ ...prev, [collection]: prev[collection].map(item => item.id === id ? { ...item, ...updatedFields } : item) }));
-  };
-  const deleteRecord = (collection, id) => {
-    if (user?.role !== 'admin') return; // Extra security
-    setDb(prev => ({ ...prev, [collection]: prev[collection].filter(item => item.id !== id) }));
-  };
-
-  // --- Financial Calculations (Memoized) ---
-  const financials = useMemo(() => {
-    let accrualRevenue = 0;
-    let cashRevenue = 0;
-    let cogs = 0;
-
-    db.invoices.forEach(inv => {
-      accrualRevenue += inv.total;
-      cashRevenue += inv.paidAmount;
-      
-      inv.items.forEach(item => {
-        const product = db.products.find(p => p.id === item.productId);
-        if (product) {
-          cogs += (product.cost * item.qty);
-        }
-      });
-    });
-
-    const opex = db.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-    const payroll = db.employees.reduce((sum, emp) => sum + (Number(emp.baseSalary) + Number(emp.incentives) - Number(emp.deductions)), 0);
-    
-    // Monthly depreciation: (Value / Lifespan in years) / 12
-    const depreciation = db.assets.reduce((sum, asset) => sum + (Number(asset.value) / (Number(asset.lifespan) * 12)), 0);
-
-    const netProfitAccrual = accrualRevenue - cogs - opex - payroll - depreciation;
-    const netProfitCash = cashRevenue - cogs - opex - payroll - depreciation;
-
-    return { accrualRevenue, cashRevenue, cogs, opex, payroll, depreciation, netProfitAccrual, netProfitCash };
-  }, [db.invoices, db.expenses, db.assets, db.employees, db.products]);
-
-  // --- Login Screen ---
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white">
-              <Calculator size={32} />
+    // --- Custom UI Components ---
+    const Modal = ({ isOpen, onClose, title, children }) => {
+      if (!isOpen) return null;
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-xl font-bold">{title}</h2>
+              <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
+                <i className="fa-solid fa-xmark text-xl"></i>
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              {children}
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-center text-slate-800 mb-8">{t('appTitle')}</h1>
+        </div>
+      );
+    };
+
+    const ConfirmModal = ({ isOpen, onClose, onConfirm, message, t }) => (
+      <Modal isOpen={isOpen} onClose={onClose} title={t('delete')}>
+        <div className="flex flex-col items-center p-4">
+          <i className="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4"></i>
+          <p className="text-lg text-center mb-6">{message}</p>
+          <div className="flex gap-4 w-full justify-center">
+            <button onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">{t('cancel')}</button>
+            <button onClick={() => { onConfirm(); onClose(); }} className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">{t('delete')}</button>
+          </div>
+        </div>
+      </Modal>
+    );
+
+    // --- Main Application Component ---
+    function App() {
+      const [lang, setLang] = useState('ar');
+      const t = (key) => dict[lang][key] || key;
+      const isRTL = lang === 'ar';
+
+      const [user, setUser] = useState(null);
+      const [view, setView] = useState('dashboard');
+      
+      const [credentials, setCredentials] = useState({ username: '', password: '' });
+      const [loginError, setLoginError] = useState('');
+
+      const VALID_USERS = {
+        'admin': { password: '123', role: 'admin', name: 'System Admin' },
+        'mona': { password: '123', role: 'secretary', name: 'Mona (Secretary)' }
+      };
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        const userRecord = VALID_USERS[credentials.username.toLowerCase()];
+        if (userRecord && userRecord.password === credentials.password) {
+          setUser({ role: userRecord.role, name: userRecord.name });
+          setLoginError('');
+          setCredentials({ username: '', password: '' });
+        } else {
+          setLoginError(t('invalidCredentials'));
+        }
+      };
+
+      const [db, setDb] = useState(initialData);
+      const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null });
+
+      const confirmDelete = (action) => {
+        setConfirmDialog({ isOpen: true, onConfirm: action });
+      };
+
+      const addRecord = (collection, record) => {
+        setDb(prev => ({ ...prev, [collection]: [...prev[collection], { ...record, id: Date.now() }] }));
+      };
+      
+      const updateRecord = (collection, id, updatedFields) => {
+        setDb(prev => ({ ...prev, [collection]: prev[collection].map(item => item.id === id ? { ...item, ...updatedFields } : item) }));
+      };
+      
+      const deleteRecord = (collection, id) => {
+        if (user?.role !== 'admin') return;
+        setDb(prev => ({ ...prev, [collection]: prev[collection].filter(item => item.id !== id) }));
+      };
+
+      const financials = useMemo(() => {
+        let accrualRevenue = 0;
+        let cashRevenue = 0;
+        let cogs = 0;
+
+        db.invoices.forEach(inv => {
+          accrualRevenue += inv.total;
+          cashRevenue += inv.paidAmount;
           
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('username')}</label>
-              <input 
-                type="text" 
-                required 
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                value={credentials.username} 
-                onChange={e => setCredentials({...credentials, username: e.target.value})} 
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('password')}</label>
-              <input 
-                type="password" 
-                required 
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                value={credentials.password} 
-                onChange={e => setCredentials({...credentials, password: e.target.value})} 
-              />
-            </div>
-            {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
-            
-            <button 
-              type="submit"
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition mt-4"
-            >
-              <UserCheck size={20} />
-              <span className="font-semibold">{t('loginBtn')}</span>
-            </button>
-          </form>
+          inv.items.forEach(item => {
+            const product = db.products.find(p => p.id === item.productId);
+            if (product) {
+              cogs += (product.cost * item.qty);
+            }
+          });
+        });
 
-          <div className="mt-6 p-4 bg-slate-100 rounded-lg text-sm text-slate-600 text-center border border-slate-200">
-             <p className="font-bold mb-2">بيانات الدخول التجريبية:</p>
-             <div className="flex justify-between items-center mb-1">
-               <span>المدير: <strong>admin</strong></span>
-               <span>الرقم السري: <strong>123</strong></span>
-             </div>
-             <div className="flex justify-between items-center">
-               <span>السكرتير: <strong>mona</strong></span>
-               <span>الرقم السري: <strong>123</strong></span>
-             </div>
-          </div>
+        const opex = db.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+        const payroll = db.employees.reduce((sum, emp) => sum + (Number(emp.baseSalary) + Number(emp.incentives) - Number(emp.deductions)), 0);
+        const depreciation = db.assets.reduce((sum, asset) => sum + (Number(asset.value) / (Number(asset.lifespan) * 12)), 0);
 
-          <div className="mt-8 text-center">
-            <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="text-slate-500 hover:text-slate-800 underline text-sm">
-              {lang === 'ar' ? 'English Interface' : 'الواجهة العربية'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        const netProfitAccrual = accrualRevenue - cogs - opex - payroll - depreciation;
+        const netProfitCash = cashRevenue - cogs - opex - payroll - depreciation;
 
-  // --- Views ---
+        return { accrualRevenue, cashRevenue, cogs, opex, payroll, depreciation, netProfitAccrual, netProfitCash };
+      }, [db.invoices, db.expenses, db.assets, db.employees, db.products]);
 
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? t('investorDashboard') : t('operationsDashboard')}</h2>
-      
-      {user.role === 'admin' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-            <p className="text-sm text-slate-500">{t('netProfit')} ({t('accrualBasis')})</p>
-            <h3 className="text-2xl font-bold text-slate-800">{financials.netProfitAccrual.toLocaleString()}</h3>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-            <p className="text-sm text-slate-500">{t('netProfit')} ({t('cashBasis')})</p>
-            <h3 className="text-2xl font-bold text-slate-800">{financials.netProfitCash.toLocaleString()}</h3>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-            <p className="text-sm text-slate-500">{t('revenue')} ({t('accrualBasis')})</p>
-            <h3 className="text-2xl font-bold text-slate-800">{financials.accrualRevenue.toLocaleString()}</h3>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
-            <p className="text-sm text-slate-500">{t('expenses')} + {t('payroll')}</p>
-            <h3 className="text-2xl font-bold text-slate-800">{(financials.opex + financials.payroll).toLocaleString()}</h3>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <AlertTriangle className="text-orange-500" />
-            {t('stockAlert')}
-          </h3>
-          <div className="divide-y">
-            {db.products.filter(p => p.type === 'tangible' && p.qty <= 5).map(p => (
-              <div key={p.id} className="py-2 flex justify-between items-center">
-                <span className="font-medium text-slate-700">{p.name}</span>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${p.qty === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                  {p.qty === 0 ? t('outOfStock') : `${p.qty} ${t('qty')}`}
-                </span>
+      // --- Login Screen ---
+      if (!user) {
+        return (
+          <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 w-full" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                  <i className="fa-solid fa-calculator text-3xl"></i>
+                </div>
               </div>
-            ))}
-            {db.products.filter(p => p.type === 'tangible' && p.qty <= 5).length === 0 && (
-              <p className="text-slate-500 py-4 text-center">لا يوجد تنبيهات للمخزون</p>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <FileText className="text-blue-500" />
-            {t('eInvoice')} - {t('pending')}
-          </h3>
-          <div className="divide-y">
-            {db.invoices.filter(i => i.eInvoiceRequired && i.eInvoiceStatus === 'pending').map(inv => (
-              <div key={inv.id} className="py-2 flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-center text-slate-800 mb-8">{t('appTitle')}</h1>
+              
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <span className="font-medium text-slate-700 block">INV-{inv.id}</span>
-                  <span className="text-xs text-slate-500">{db.clients.find(c=>c.id===inv.clientId)?.name}</span>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('username')}</label>
+                  <input 
+                    type="text" 
+                    required 
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                    value={credentials.username} 
+                    onChange={e => setCredentials({...credentials, username: e.target.value})} 
+                  />
                 </div>
-                <div className="flex gap-2">
-                  {user.role === 'admin' && (
-                    <button onClick={() => updateRecord('invoices', inv.id, { eInvoiceStatus: 'delivered' })} className="text-emerald-600 hover:bg-emerald-50 p-1 rounded" title={t('delivered')}>
-                      <Check size={18} />
-                    </button>
-                  )}
-                  <span className="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-700">{t('pending')}</span>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('password')}</label>
+                  <input 
+                    type="password" 
+                    required 
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                    value={credentials.password} 
+                    onChange={e => setCredentials({...credentials, password: e.target.value})} 
+                  />
                 </div>
-              </div>
-            ))}
-             {db.invoices.filter(i => i.eInvoiceRequired && i.eInvoiceStatus === 'pending').length === 0 && (
-              <p className="text-slate-500 py-4 text-center">لا توجد فواتير معلقة</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const ClientsView = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [form, setForm] = useState({ name: '', category: 'Student', phone: '', email: '' });
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      addRecord('clients', form);
-      setIsModalOpen(false);
-      setForm({ name: '', category: 'Student', phone: '', email: '' });
-    };
-
-    return (
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">{t('clients')}</h2>
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-            <Plus size={18} /> {t('add')}
-          </button>
-        </div>
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
-            <thead className="bg-slate-100 text-slate-700">
-              <tr>
-                <th className="p-3 border-b">{t('name')}</th>
-                <th className="p-3 border-b">{t('category')}</th>
-                <th className="p-3 border-b">{t('phone')}</th>
-                <th className="p-3 border-b">{t('email')}</th>
-                {user.role === 'admin' && <th className="p-3 border-b text-center">{t('settings')}</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {db.clients.map(client => (
-                <tr key={client.id} className="hover:bg-slate-50">
-                  <td className="p-3">{client.name}</td>
-                  <td className="p-3"><span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{client.category}</span></td>
-                  <td className="p-3">{client.phone}</td>
-                  <td className="p-3">{client.email}</td>
-                  {user.role === 'admin' && (
-                    <td className="p-3 text-center">
-                      <button onClick={() => confirmDelete(() => deleteRecord('clients', client.id))} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={18}/></button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('add') + ' ' + t('clients')}>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('name')}</label>
-              <input required type="text" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('category')}</label>
-              <select className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}>
-                <option value="Student">Student</option>
-                <option value="Startup">Startup</option>
-                <option value="Government">Government Institution</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('phone')}</label>
-              <input type="tel" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.phone} onChange={e=>setForm({...form, phone: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('email')}</label>
-              <input type="email" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.email} onChange={e=>setForm({...form, email: e.target.value})} />
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
-            </div>
-          </form>
-        </Modal>
-      </div>
-    );
-  };
-
-  const InventoryView = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [form, setForm] = useState({ type: 'tangible', name: '', qty: 0, cost: 0, price: 0 });
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      addRecord('products', { ...form, qty: form.type === 'service' ? 9999 : Number(form.qty), cost: Number(form.cost), price: Number(form.price) });
-      setIsModalOpen(false);
-    };
-
-    return (
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">{t('inventory')}</h2>
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-            <Plus size={18} /> {t('add')}
-          </button>
-        </div>
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
-            <thead className="bg-slate-100 text-slate-700">
-              <tr>
-                <th className="p-3 border-b">{t('name')}</th>
-                <th className="p-3 border-b">{t('type')}</th>
-                <th className="p-3 border-b">{t('qty')}</th>
-                {user.role === 'admin' && <th className="p-3 border-b">{t('cost')}</th>}
-                <th className="p-3 border-b">{t('price')}</th>
-                {user.role === 'admin' && <th className="p-3 border-b text-center">{t('settings')}</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {db.products.map(product => (
-                <tr key={product.id} className="hover:bg-slate-50">
-                  <td className="p-3 font-medium">{product.name}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 rounded text-xs ${product.type === 'service' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                      {product.type === 'service' ? t('service') : t('tangible')}
-                    </span>
-                  </td>
-                  <td className="p-3">{product.type === 'service' ? '∞' : product.qty}</td>
-                  {user.role === 'admin' && <td className="p-3">{product.cost}</td>}
-                  <td className="p-3 font-bold text-blue-600">{product.price}</td>
-                  {user.role === 'admin' && (
-                    <td className="p-3 text-center">
-                      <button onClick={() => confirmDelete(() => deleteRecord('products', product.id))} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={18}/></button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('add') + ' ' + t('inventory')}>
-          <form onSubmit={handleSubmit} className="space-y-4">
-             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('type')}</label>
-              <select className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.type} onChange={e=>setForm({...form, type: e.target.value})}>
-                <option value="tangible">{t('tangible')}</option>
-                <option value="service">{t('service')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('name')}</label>
-              <input required type="text" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
-            </div>
-            {form.type === 'tangible' && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t('qty')}</label>
-                <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.qty} onChange={e=>setForm({...form, qty: e.target.value})} />
-              </div>
-            )}
-            {user.role === 'admin' && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t('cost')}</label>
-                <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.cost} onChange={e=>setForm({...form, cost: e.target.value})} />
-              </div>
-            )}
-             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('price')}</label>
-              <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
-            </div>
-          </form>
-        </Modal>
-      </div>
-    );
-  };
-
-  const InvoicesView = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [form, setForm] = useState({
-      clientId: '',
-      items: [], // { productId, qty, price }
-      paidAmount: 0,
-      eInvoiceRequired: false,
-      date: new Date().toISOString().split('T')[0]
-    });
-    const [selectedProduct, setSelectedProduct] = useState('');
-    const [addQty, setAddQty] = useState(1);
-    const [errorMsg, setErrorMsg] = useState('');
-
-    const invoiceTotal = form.items.reduce((sum, item) => sum + (item.qty * item.price), 0);
-
-    const handleAddItem = () => {
-      if (!selectedProduct) return;
-      const product = db.products.find(p => p.id === Number(selectedProduct));
-      if (!product) return;
-
-      const currentQtyInCart = form.items.find(i => i.productId === product.id)?.qty || 0;
-      
-      if (product.type === 'tangible' && (currentQtyInCart + addQty > product.qty)) {
-        setErrorMsg(`${t('insufficientStock')} ${product.name} (${product.qty} متوفر)`);
-        return;
-      }
-
-      setErrorMsg('');
-      const existingItem = form.items.find(i => i.productId === product.id);
-      let newItems;
-      if (existingItem) {
-        newItems = form.items.map(i => i.productId === product.id ? { ...i, qty: i.qty + addQty } : i);
-      } else {
-        newItems = [...form.items, { productId: product.id, name: product.name, qty: addQty, price: product.price, type: product.type }];
-      }
-      setForm({ ...form, items: newItems });
-      setSelectedProduct('');
-      setAddQty(1);
-    };
-
-    const handleRemoveItem = (productId) => {
-      setForm({ ...form, items: form.items.filter(i => i.productId !== productId) });
-    };
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      if (form.items.length === 0) {
-        setErrorMsg(t('addAtLeastOneItem'));
-        return;
-      }
-
-      // Determine status
-      let status = 'unpaid';
-      const paid = Number(form.paidAmount);
-      if (paid > 0 && paid < invoiceTotal) status = 'partial';
-      if (paid >= invoiceTotal) status = 'paid_full';
-
-      // Deduct inventory
-      form.items.forEach(item => {
-        if (item.type === 'tangible') {
-          const prod = db.products.find(p => p.id === item.productId);
-          updateRecord('products', item.productId, { qty: prod.qty - item.qty });
-        }
-      });
-
-      addRecord('invoices', {
-        ...form,
-        total: invoiceTotal,
-        paidAmount: paid,
-        status,
-        eInvoiceStatus: form.eInvoiceRequired ? 'pending' : 'not_required'
-      });
-
-      setIsModalOpen(false);
-      setForm({ clientId: '', items: [], paidAmount: 0, eInvoiceRequired: false, date: new Date().toISOString().split('T')[0] });
-    };
-
-    return (
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">{t('invoices')}</h2>
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-            <Plus size={18} /> {t('createInvoice')}
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
-             <thead className="bg-slate-100 text-slate-700">
-              <tr>
-                <th className="p-3 border-b">ID</th>
-                <th className="p-3 border-b">{t('name')}</th>
-                <th className="p-3 border-b">{t('date')}</th>
-                <th className="p-3 border-b">{t('total')}</th>
-                <th className="p-3 border-b">{t('status')}</th>
-                <th className="p-3 border-b">{t('eInvoice')}</th>
-                {user.role === 'admin' && <th className="p-3 border-b text-center">{t('settings')}</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {db.invoices.map(inv => (
-                <tr key={inv.id} className="hover:bg-slate-50">
-                  <td className="p-3 font-medium">INV-{inv.id}</td>
-                  <td className="p-3">{db.clients.find(c => c.id === Number(inv.clientId))?.name || 'Unknown'}</td>
-                  <td className="p-3">{inv.date}</td>
-                  <td className="p-3 font-bold">{inv.total}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${inv.status === 'paid_full' ? 'bg-emerald-100 text-emerald-800' : inv.status === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                      {t(inv.status)}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                     {inv.eInvoiceRequired ? (
-                       <span className={`px-2 py-1 rounded text-xs ${inv.eInvoiceStatus === 'delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`}>
-                         {t(inv.eInvoiceStatus)}
-                       </span>
-                     ) : <span className="text-slate-400 text-sm">-</span>}
-                  </td>
-                  {user.role === 'admin' && (
-                    <td className="p-3 text-center">
-                      <button onClick={() => confirmDelete(() => deleteRecord('invoices', inv.id))} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={18}/></button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('createInvoice')}>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t('selectClient')}</label>
-                <select required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.clientId} onChange={e=>setForm({...form, clientId: e.target.value})}>
-                  <option value="">-- {t('selectClient')} --</option>
-                  {db.clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                 <label className="block text-sm font-medium text-slate-700 mb-1">{t('date')}</label>
-                 <input type="date" required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.date} onChange={e=>setForm({...form, date: e.target.value})} />
-              </div>
-            </div>
-
-            {/* Hybrid Items Selection */}
-            <div className="border p-4 rounded-lg bg-slate-50">
-               <label className="block text-sm font-bold text-slate-700 mb-2">{t('inventory')}</label>
-               <div className="flex gap-2 mb-4">
-                 <select className="flex-1 p-2 border rounded outline-none" value={selectedProduct} onChange={e=>setSelectedProduct(e.target.value)}>
-                    <option value="">-- {t('selectProduct')} --</option>
-                    {db.products.map(p => (
-                      <option key={p.id} value={p.id} disabled={p.type==='tangible' && p.qty === 0}>
-                        {p.name} - {p.price} ({p.type === 'tangible' ? `${p.qty} في المخزن` : t('service')})
-                      </option>
-                    ))}
-                 </select>
-                 <input type="number" min="1" className="w-20 p-2 border rounded outline-none" value={addQty} onChange={e=>setAddQty(Number(e.target.value))} />
-                 <button type="button" onClick={handleAddItem} className="bg-slate-800 text-white px-4 rounded hover:bg-slate-700">{t('add')}</button>
-               </div>
-               {errorMsg && <p className="text-red-500 text-sm mb-2">{errorMsg}</p>}
-
-               {/* Cart */}
-               <div className="bg-white border rounded">
-                 <table className="w-full text-sm text-left" dir={isRTL ? 'rtl' : 'ltr'}>
-                   <thead className="bg-slate-100">
-                     <tr>
-                       <th className="p-2">{t('name')}</th>
-                       <th className="p-2">{t('qty')}</th>
-                       <th className="p-2">{t('price')}</th>
-                       <th className="p-2">{t('total')}</th>
-                       <th className="p-2"></th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {form.items.map(item => (
-                       <tr key={item.productId} className="border-t">
-                         <td className="p-2">{item.name}</td>
-                         <td className="p-2">{item.qty}</td>
-                         <td className="p-2">{item.price}</td>
-                         <td className="p-2">{item.qty * item.price}</td>
-                         <td className="p-2 text-center">
-                           <button type="button" onClick={() => handleRemoveItem(item.productId)} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button>
-                         </td>
-                       </tr>
-                     ))}
-                     {form.items.length === 0 && <tr><td colSpan="5" className="p-4 text-center text-slate-400">لا يوجد عناصر</td></tr>}
-                   </tbody>
-                 </table>
-               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t('paid')}</label>
-                <input type="number" min="0" max={invoiceTotal} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.paidAmount} onChange={e=>setForm({...form, paidAmount: e.target.value})} />
-              </div>
-              <div className="p-2 bg-blue-50 text-blue-900 rounded font-bold text-lg flex justify-between items-center h-[42px]">
-                <span>{t('total')}:</span>
-                <span>{invoiceTotal}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 mt-4">
-              <input type="checkbox" id="einvoice" className="w-4 h-4" checked={form.eInvoiceRequired} onChange={e=>setForm({...form, eInvoiceRequired: e.target.checked})} />
-              <label htmlFor="einvoice" className="text-sm font-medium text-slate-700">يتطلب فاتورة إلكترونية ضريبية</label>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t mt-6">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
-            </div>
-          </form>
-        </Modal>
-      </div>
-    );
-  };
-
-  const FinanceView = () => {
-    if (user.role !== 'admin') return <div className="p-4 text-center text-red-500">Access Denied</div>;
-
-    const [activeTab, setActiveTab] = useState('overview');
-    const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-    const [expenseForm, setExpenseForm] = useState({ name: '', amount: 0, date: new Date().toISOString().split('T')[0] });
-
-    const handleAddExpense = (e) => {
-      e.preventDefault();
-      addRecord('expenses', expenseForm);
-      setIsExpenseModalOpen(false);
-    };
-
-    return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-slate-800">{t('financials')}</h2>
-        
-        <div className="flex gap-4 border-b border-slate-200">
-          <button onClick={()=>setActiveTab('overview')} className={`pb-2 px-1 font-medium ${activeTab==='overview'?'border-b-2 border-blue-600 text-blue-600':'text-slate-500'}`}>نظرة عامة</button>
-          <button onClick={()=>setActiveTab('expenses')} className={`pb-2 px-1 font-medium ${activeTab==='expenses'?'border-b-2 border-blue-600 text-blue-600':'text-slate-500'}`}>{t('expenses')}</button>
-          <button onClick={()=>setActiveTab('assets')} className={`pb-2 px-1 font-medium ${activeTab==='assets'?'border-b-2 border-blue-600 text-blue-600':'text-slate-500'}`}>{t('assets')}</button>
-        </div>
-
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-blue-500">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">{t('accrualBasis')} (ربح الفواتير الموقعة)</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-slate-600">{t('revenue')}</span><span className="font-bold text-emerald-600">{financials.accrualRevenue.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('cogs')} (-)</span><span className="font-bold text-red-500">{financials.cogs.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('expenses')} (-)</span><span className="font-bold text-red-500">{financials.opex.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('payroll')} (-)</span><span className="font-bold text-red-500">{financials.payroll.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('monthlyDepreciation')} (-)</span><span className="font-bold text-red-500">{Math.round(financials.depreciation).toLocaleString()}</span></div>
-                <div className="border-t pt-3 flex justify-between text-lg font-black mt-2">
-                  <span>{t('netProfit')}</span>
-                  <span className={financials.netProfitAccrual >= 0 ? 'text-emerald-600' : 'text-red-600'}>{Math.round(financials.netProfitAccrual).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-emerald-500">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">{t('cashBasis')} (ربح النقد المحصل)</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-slate-600">{t('revenue')} (المحصل)</span><span className="font-bold text-emerald-600">{financials.cashRevenue.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('cogs')} (-)</span><span className="font-bold text-red-500">{financials.cogs.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('expenses')} (-)</span><span className="font-bold text-red-500">{financials.opex.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('payroll')} (-)</span><span className="font-bold text-red-500">{financials.payroll.toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">{t('monthlyDepreciation')} (-)</span><span className="font-bold text-red-500">{Math.round(financials.depreciation).toLocaleString()}</span></div>
-                <div className="border-t pt-3 flex justify-between text-lg font-black mt-2">
-                  <span>{t('netProfit')}</span>
-                  <span className={financials.netProfitCash >= 0 ? 'text-emerald-600' : 'text-red-600'}>{Math.round(financials.netProfitCash).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'expenses' && (
-           <div>
-             <div className="flex justify-end mb-4">
-                <button onClick={() => setIsExpenseModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-                  <Plus size={18} /> إضافة مصروف
+                {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
+                
+                <button 
+                  type="submit"
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition mt-4"
+                >
+                  <i className="fa-solid fa-user-check text-xl"></i>
+                  <span className="font-semibold">{t('loginBtn')}</span>
                 </button>
-             </div>
-             <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
-                  <thead className="bg-slate-100 text-slate-700">
-                    <tr>
-                      <th className="p-3 border-b">{t('name')}</th>
-                      <th className="p-3 border-b">{t('date')}</th>
-                      <th className="p-3 border-b">المبلغ</th>
-                      <th className="p-3 border-b text-center">{t('settings')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {db.expenses.map(exp => (
-                      <tr key={exp.id} className="hover:bg-slate-50">
-                        <td className="p-3 font-medium">{exp.name}</td>
-                        <td className="p-3">{exp.date}</td>
-                        <td className="p-3 font-bold text-red-500">{exp.amount}</td>
-                        <td className="p-3 text-center">
-                          <button onClick={() => confirmDelete(() => deleteRecord('expenses', exp.id))} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={18}/></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-             </div>
-           </div>
-        )}
+              </form>
 
-        {activeTab === 'assets' && (
-           <div>
-             <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
-                  <thead className="bg-slate-100 text-slate-700">
-                    <tr>
-                      <th className="p-3 border-b">{t('name')}</th>
-                      <th className="p-3 border-b">القيمة</th>
-                      <th className="p-3 border-b">{t('assetLifespan')}</th>
-                      <th className="p-3 border-b">{t('monthlyDepreciation')}</th>
-                      <th className="p-3 border-b text-center">{t('settings')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {db.assets.map(asset => (
-                      <tr key={asset.id} className="hover:bg-slate-50">
-                        <td className="p-3 font-medium">{asset.name}</td>
-                        <td className="p-3">{asset.value}</td>
-                        <td className="p-3">{asset.lifespan}</td>
-                        <td className="p-3 font-bold text-orange-500">{Math.round(asset.value / (asset.lifespan * 12))}</td>
-                        <td className="p-3 text-center">
-                          <button onClick={() => confirmDelete(() => deleteRecord('assets', asset.id))} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={18}/></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-             </div>
-           </div>
-        )}
+              <div className="mt-6 p-4 bg-slate-100 rounded-lg text-sm text-slate-600 text-center border border-slate-200">
+                 <p className="font-bold mb-2">بيانات الدخول التجريبية:</p>
+                 <div className="flex justify-between items-center mb-1">
+                   <span>المدير: <strong>admin</strong></span>
+                   <span>الرقم السري: <strong>123</strong></span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                   <span>السكرتير: <strong>mona</strong></span>
+                   <span>الرقم السري: <strong>123</strong></span>
+                 </div>
+              </div>
 
-        <Modal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} title="إضافة مصروف">
-          <form onSubmit={handleAddExpense} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">البيان (إيجار، كهرباء، تسويق، ضرائب...)</label>
-              <input required type="text" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={expenseForm.name} onChange={e=>setExpenseForm({...expenseForm, name: e.target.value})} />
+              <div className="mt-8 text-center">
+                <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="text-slate-500 hover:text-slate-800 underline text-sm">
+                  {lang === 'ar' ? 'English Interface' : 'الواجهة العربية'}
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">المبلغ</label>
-              <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={expenseForm.amount} onChange={e=>setExpenseForm({...expenseForm, amount: e.target.value})} />
-            </div>
-             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{t('date')}</label>
-              <input required type="date" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={expenseForm.date} onChange={e=>setExpenseForm({...expenseForm, date: e.target.value})} />
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <button type="button" onClick={() => setIsExpenseModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
-            </div>
-          </form>
-        </Modal>
-
-      </div>
-    );
-  };
-
-  const HRView = () => {
-    if (user.role !== 'admin') return <div className="p-4 text-center text-red-500">Access Denied</div>;
-
-    const handleEmpUpdate = (id, field, value) => {
-      updateRecord('employees', id, { [field]: Number(value) });
-    };
-
-    return (
-       <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">{t('hr')}</h2>
-        </div>
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
-            <thead className="bg-slate-100 text-slate-700">
-              <tr>
-                <th className="p-3 border-b">{t('name')}</th>
-                <th className="p-3 border-b">{t('baseSalary')}</th>
-                <th className="p-3 border-b">{t('incentives')} (+)</th>
-                <th className="p-3 border-b">{t('deductions')} (-)</th>
-                <th className="p-3 border-b">{t('netSalary')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {db.employees.map(emp => {
-                const net = Number(emp.baseSalary) + Number(emp.incentives) - Number(emp.deductions);
-                return (
-                  <tr key={emp.id} className="hover:bg-slate-50">
-                    <td className="p-3 font-medium">{emp.name}</td>
-                    <td className="p-3">
-                      <input type="number" className="w-24 p-1 border rounded" value={emp.baseSalary} onChange={e=>handleEmpUpdate(emp.id, 'baseSalary', e.target.value)} />
-                    </td>
-                    <td className="p-3">
-                      <input type="number" className="w-24 p-1 border rounded text-emerald-600" value={emp.incentives} onChange={e=>handleEmpUpdate(emp.id, 'incentives', e.target.value)} />
-                    </td>
-                    <td className="p-3">
-                       <input type="number" className="w-24 p-1 border rounded text-red-600" value={emp.deductions} onChange={e=>handleEmpUpdate(emp.id, 'deductions', e.target.value)} />
-                    </td>
-                    <td className="p-3 font-bold text-blue-600">{net}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
-
-  // --- Main Layout ---
-  const navItems = [
-    { id: 'dashboard', icon: LayoutDashboard, label: t('dashboard'), roles: ['admin', 'secretary'] },
-    { id: 'invoices', icon: FileText, label: t('invoices'), roles: ['admin', 'secretary'] },
-    { id: 'inventory', icon: Package, label: t('inventory'), roles: ['admin', 'secretary'] },
-    { id: 'clients', icon: Users, label: t('clients'), roles: ['admin', 'secretary'] },
-    { id: 'financials', icon: DollarSign, label: t('financials'), roles: ['admin'] },
-    { id: 'hr', icon: Briefcase, label: t('hr'), roles: ['admin'] },
-  ];
-
-  return (
-    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col transition-all">
-        <div className="p-4 flex items-center gap-3 border-b border-slate-800">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Calculator size={24} />
           </div>
+        );
+      }
+
+      // --- Views ---
+      const renderDashboard = () => (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? t('investorDashboard') : t('operationsDashboard')}</h2>
+          
+          {user.role === 'admin' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                <p className="text-sm text-slate-500">{t('netProfit')} ({t('accrualBasis')})</p>
+                <h3 className="text-2xl font-bold text-slate-800">{financials.netProfitAccrual.toLocaleString()}</h3>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
+                <p className="text-sm text-slate-500">{t('netProfit')} ({t('cashBasis')})</p>
+                <h3 className="text-2xl font-bold text-slate-800">{financials.netProfitCash.toLocaleString()}</h3>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
+                <p className="text-sm text-slate-500">{t('revenue')} ({t('accrualBasis')})</p>
+                <h3 className="text-2xl font-bold text-slate-800">{financials.accrualRevenue.toLocaleString()}</h3>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+                <p className="text-sm text-slate-500">{t('expenses')} + {t('payroll')}</p>
+                <h3 className="text-2xl font-bold text-slate-800">{(financials.opex + financials.payroll).toLocaleString()}</h3>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow p-4">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i className="fa-solid fa-triangle-exclamation text-orange-500"></i>
+                {t('stockAlert')}
+              </h3>
+              <div className="divide-y">
+                {db.products.filter(p => p.type === 'tangible' && p.qty <= 5).map(p => (
+                  <div key={p.id} className="py-2 flex justify-between items-center">
+                    <span className="font-medium text-slate-700">{p.name}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${p.qty === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                      {p.qty === 0 ? t('outOfStock') : `${p.qty} ${t('qty')}`}
+                    </span>
+                  </div>
+                ))}
+                {db.products.filter(p => p.type === 'tangible' && p.qty <= 5).length === 0 && (
+                  <p className="text-slate-500 py-4 text-center">لا يوجد تنبيهات للمخزون</p>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i className="fa-solid fa-file-invoice text-blue-500"></i>
+                {t('eInvoice')} - {t('pending')}
+              </h3>
+              <div className="divide-y">
+                {db.invoices.filter(i => i.eInvoiceRequired && i.eInvoiceStatus === 'pending').map(inv => (
+                  <div key={inv.id} className="py-2 flex justify-between items-center">
+                    <div>
+                      <span className="font-medium text-slate-700 block">INV-{inv.id}</span>
+                      <span className="text-xs text-slate-500">{db.clients.find(c=>c.id===inv.clientId)?.name}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      {user.role === 'admin' && (
+                        <button onClick={() => updateRecord('invoices', inv.id, { eInvoiceStatus: 'delivered' })} className="text-emerald-600 hover:bg-emerald-50 p-1 rounded" title={t('delivered')}>
+                          <i className="fa-solid fa-check text-lg"></i>
+                        </button>
+                      )}
+                      <span className="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-700">{t('pending')}</span>
+                    </div>
+                  </div>
+                ))}
+                 {db.invoices.filter(i => i.eInvoiceRequired && i.eInvoiceStatus === 'pending').length === 0 && (
+                  <p className="text-slate-500 py-4 text-center">لا توجد فواتير معلقة</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const ClientsView = () => {
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [form, setForm] = useState({ name: '', category: 'Student', phone: '', email: '' });
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          addRecord('clients', form);
+          setIsModalOpen(false);
+          setForm({ name: '', category: 'Student', phone: '', email: '' });
+        };
+
+        return (
           <div>
-            <h1 className="font-bold text-lg leading-tight">ROBOTECH</h1>
-            <p className="text-xs text-slate-400">ERP System</p>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800">{t('clients')}</h2>
+              <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+                <i className="fa-solid fa-plus text-lg"></i> {t('add')}
+              </button>
+            </div>
+            <div className="bg-white rounded-lg shadow overflow-hidden w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]" dir={isRTL ? 'rtl' : 'ltr'}>
+                <thead className="bg-slate-100 text-slate-700">
+                  <tr>
+                    <th className="p-3 border-b">{t('name')}</th>
+                    <th className="p-3 border-b">{t('category')}</th>
+                    <th className="p-3 border-b">{t('phone')}</th>
+                    <th className="p-3 border-b">{t('email')}</th>
+                    {user.role === 'admin' && <th className="p-3 border-b text-center">{t('settings')}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {db.clients.map(client => (
+                    <tr key={client.id} className="hover:bg-slate-50">
+                      <td className="p-3">{client.name}</td>
+                      <td className="p-3"><span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{client.category}</span></td>
+                      <td className="p-3">{client.phone}</td>
+                      <td className="p-3">{client.email}</td>
+                      {user.role === 'admin' && (
+                        <td className="p-3 text-center">
+                          <button onClick={() => confirmDelete(() => deleteRecord('clients', client.id))} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                            <i className="fa-solid fa-trash-can text-lg"></i>
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('add') + ' ' + t('clients')}>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('name')}</label>
+                  <input required type="text" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('category')}</label>
+                  <select className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}>
+                    <option value="Student">Student</option>
+                    <option value="Startup">Startup</option>
+                    <option value="Government">Government Institution</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('phone')}</label>
+                  <input type="tel" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.phone} onChange={e=>setForm({...form, phone: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('email')}</label>
+                  <input type="email" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.email} onChange={e=>setForm({...form, email: e.target.value})} />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
+                </div>
+              </form>
+            </Modal>
           </div>
-        </div>
-        
-        <nav className="flex-1 py-4 flex flex-col gap-1 px-3">
-          {navItems.filter(item => item.roles.includes(user.role)).map(item => (
-            <button
-              key={item.id}
-              onClick={() => setView(item.id)}
-              className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-sm font-medium ${
-                view === item.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        );
+      };
 
-        <div className="p-4 border-t border-slate-800 text-sm">
-          <div className="flex items-center justify-between mb-4">
-             <span className="text-slate-400">{user.name}</span>
-             <span className={`px-2 py-1 rounded text-xs ${user.role === 'admin' ? 'bg-purple-900 text-purple-200' : 'bg-emerald-900 text-emerald-200'}`}>
-               {user.role}
-             </span>
+      const InventoryView = () => {
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [form, setForm] = useState({ type: 'tangible', name: '', qty: 0, cost: 0, price: 0 });
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          addRecord('products', { ...form, qty: form.type === 'service' ? 9999 : Number(form.qty), cost: Number(form.cost), price: Number(form.price) });
+          setIsModalOpen(false);
+        };
+
+        return (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800">{t('inventory')}</h2>
+              <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+                <i className="fa-solid fa-plus text-lg"></i> {t('add')}
+              </button>
+            </div>
+            <div className="bg-white rounded-lg shadow overflow-hidden w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]" dir={isRTL ? 'rtl' : 'ltr'}>
+                <thead className="bg-slate-100 text-slate-700">
+                  <tr>
+                    <th className="p-3 border-b">{t('name')}</th>
+                    <th className="p-3 border-b">{t('type')}</th>
+                    <th className="p-3 border-b">{t('qty')}</th>
+                    {user.role === 'admin' && <th className="p-3 border-b">{t('cost')}</th>}
+                    <th className="p-3 border-b">{t('price')}</th>
+                    {user.role === 'admin' && <th className="p-3 border-b text-center">{t('settings')}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {db.products.map(product => (
+                    <tr key={product.id} className="hover:bg-slate-50">
+                      <td className="p-3 font-medium">{product.name}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-1 rounded text-xs ${product.type === 'service' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                          {product.type === 'service' ? t('service') : t('tangible')}
+                        </span>
+                      </td>
+                      <td className="p-3">{product.type === 'service' ? '∞' : product.qty}</td>
+                      {user.role === 'admin' && <td className="p-3">{product.cost}</td>}
+                      <td className="p-3 font-bold text-blue-600">{product.price}</td>
+                      {user.role === 'admin' && (
+                        <td className="p-3 text-center">
+                          <button onClick={() => confirmDelete(() => deleteRecord('products', product.id))} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                             <i className="fa-solid fa-trash-can text-lg"></i>
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('add') + ' ' + t('inventory')}>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('type')}</label>
+                  <select className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.type} onChange={e=>setForm({...form, type: e.target.value})}>
+                    <option value="tangible">{t('tangible')}</option>
+                    <option value="service">{t('service')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('name')}</label>
+                  <input required type="text" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+                </div>
+                {form.type === 'tangible' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('qty')}</label>
+                    <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.qty} onChange={e=>setForm({...form, qty: e.target.value})} />
+                  </div>
+                )}
+                {user.role === 'admin' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('cost')}</label>
+                    <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.cost} onChange={e=>setForm({...form, cost: e.target.value})} />
+                  </div>
+                )}
+                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('price')}</label>
+                  <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
+                </div>
+              </form>
+            </Modal>
           </div>
-          <button onClick={() => setUser(null)} className="flex items-center gap-2 text-red-400 hover:text-red-300 w-full">
-            <LogOut size={18} /> {t('logout')}
-          </button>
-        </div>
-      </aside>
+        );
+      };
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden h-screen">
-        <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-10">
-          <h2 className="text-xl font-semibold text-slate-800 hidden md:block">{t(view)}</h2>
-          <div className="flex items-center gap-4">
-            <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="px-3 py-1 bg-slate-100 rounded text-sm font-medium text-slate-600 hover:bg-slate-200 transition">
-              {lang === 'ar' ? 'EN' : 'عربي'}
-            </button>
+      const InvoicesView = () => {
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [form, setForm] = useState({
+          clientId: '',
+          items: [],
+          paidAmount: 0,
+          eInvoiceRequired: false,
+          date: new Date().toISOString().split('T')[0]
+        });
+        const [selectedProduct, setSelectedProduct] = useState('');
+        const [addQty, setAddQty] = useState(1);
+        const [errorMsg, setErrorMsg] = useState('');
+
+        const invoiceTotal = form.items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+
+        const handleAddItem = () => {
+          if (!selectedProduct) return;
+          const product = db.products.find(p => p.id === Number(selectedProduct));
+          if (!product) return;
+
+          const currentQtyInCart = form.items.find(i => i.productId === product.id)?.qty || 0;
+          
+          if (product.type === 'tangible' && (currentQtyInCart + addQty > product.qty)) {
+            setErrorMsg(`${t('insufficientStock')} ${product.name} (${product.qty} متوفر)`);
+            return;
+          }
+
+          setErrorMsg('');
+          const existingItem = form.items.find(i => i.productId === product.id);
+          let newItems;
+          if (existingItem) {
+            newItems = form.items.map(i => i.productId === product.id ? { ...i, qty: i.qty + addQty } : i);
+          } else {
+            newItems = [...form.items, { productId: product.id, name: product.name, qty: addQty, price: product.price, type: product.type }];
+          }
+          setForm({ ...form, items: newItems });
+          setSelectedProduct('');
+          setAddQty(1);
+        };
+
+        const handleRemoveItem = (productId) => {
+          setForm({ ...form, items: form.items.filter(i => i.productId !== productId) });
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (form.items.length === 0) {
+            setErrorMsg(t('addAtLeastOneItem'));
+            return;
+          }
+
+          let status = 'unpaid';
+          const paid = Number(form.paidAmount);
+          if (paid > 0 && paid < invoiceTotal) status = 'partial';
+          if (paid >= invoiceTotal) status = 'paid_full';
+
+          form.items.forEach(item => {
+            if (item.type === 'tangible') {
+              const prod = db.products.find(p => p.id === item.productId);
+              updateRecord('products', item.productId, { qty: prod.qty - item.qty });
+            }
+          });
+
+          addRecord('invoices', {
+            ...form,
+            total: invoiceTotal,
+            paidAmount: paid,
+            status,
+            eInvoiceStatus: form.eInvoiceRequired ? 'pending' : 'not_required'
+          });
+
+          setIsModalOpen(false);
+          setForm({ clientId: '', items: [], paidAmount: 0, eInvoiceRequired: false, date: new Date().toISOString().split('T')[0] });
+        };
+
+        return (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800">{t('invoices')}</h2>
+              <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+                <i className="fa-solid fa-plus text-lg"></i> {t('createInvoice')}
+              </button>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow overflow-hidden w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]" dir={isRTL ? 'rtl' : 'ltr'}>
+                 <thead className="bg-slate-100 text-slate-700">
+                  <tr>
+                    <th className="p-3 border-b">ID</th>
+                    <th className="p-3 border-b">{t('name')}</th>
+                    <th className="p-3 border-b">{t('date')}</th>
+                    <th className="p-3 border-b">{t('total')}</th>
+                    <th className="p-3 border-b">{t('status')}</th>
+                    <th className="p-3 border-b">{t('eInvoice')}</th>
+                    {user.role === 'admin' && <th className="p-3 border-b text-center">{t('settings')}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {db.invoices.map(inv => (
+                    <tr key={inv.id} className="hover:bg-slate-50">
+                      <td className="p-3 font-medium">INV-{inv.id}</td>
+                      <td className="p-3">{db.clients.find(c => c.id === Number(inv.clientId))?.name || 'Unknown'}</td>
+                      <td className="p-3">{inv.date}</td>
+                      <td className="p-3 font-bold">{inv.total}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${inv.status === 'paid_full' ? 'bg-emerald-100 text-emerald-800' : inv.status === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                          {t(inv.status)}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                         {inv.eInvoiceRequired ? (
+                           <span className={`px-2 py-1 rounded text-xs ${inv.eInvoiceStatus === 'delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`}>
+                             {t(inv.eInvoiceStatus)}
+                           </span>
+                         ) : <span className="text-slate-400 text-sm">-</span>}
+                      </td>
+                      {user.role === 'admin' && (
+                        <td className="p-3 text-center">
+                          <button onClick={() => confirmDelete(() => deleteRecord('invoices', inv.id))} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                            <i className="fa-solid fa-trash-can text-lg"></i>
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('createInvoice')}>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('selectClient')}</label>
+                    <select required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.clientId} onChange={e=>setForm({...form, clientId: e.target.value})}>
+                      <option value="">-- {t('selectClient')} --</option>
+                      {db.clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                     <label className="block text-sm font-medium text-slate-700 mb-1">{t('date')}</label>
+                     <input type="date" required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.date} onChange={e=>setForm({...form, date: e.target.value})} />
+                  </div>
+                </div>
+
+                <div className="border p-4 rounded-lg bg-slate-50">
+                   <label className="block text-sm font-bold text-slate-700 mb-2">{t('inventory')}</label>
+                   <div className="flex gap-2 mb-4">
+                     <select className="flex-1 p-2 border rounded outline-none" value={selectedProduct} onChange={e=>setSelectedProduct(e.target.value)}>
+                        <option value="">-- {t('selectProduct')} --</option>
+                        {db.products.map(p => (
+                          <option key={p.id} value={p.id} disabled={p.type==='tangible' && p.qty === 0}>
+                            {p.name} - {p.price} ({p.type === 'tangible' ? `${p.qty} في المخزن` : t('service')})
+                          </option>
+                        ))}
+                     </select>
+                     <input type="number" min="1" className="w-20 p-2 border rounded outline-none" value={addQty} onChange={e=>setAddQty(Number(e.target.value))} />
+                     <button type="button" onClick={handleAddItem} className="bg-slate-800 text-white px-4 rounded hover:bg-slate-700">{t('add')}</button>
+                   </div>
+                   {errorMsg && <p className="text-red-500 text-sm mb-2">{errorMsg}</p>}
+
+                   <div className="bg-white border rounded">
+                     <table className="w-full text-sm text-left" dir={isRTL ? 'rtl' : 'ltr'}>
+                       <thead className="bg-slate-100">
+                         <tr>
+                           <th className="p-2">{t('name')}</th>
+                           <th className="p-2">{t('qty')}</th>
+                           <th className="p-2">{t('price')}</th>
+                           <th className="p-2">{t('total')}</th>
+                           <th className="p-2"></th>
+                         </tr>
+                       </thead>
+                       <tbody>
+                         {form.items.map(item => (
+                           <tr key={item.productId} className="border-t">
+                             <td className="p-2">{item.name}</td>
+                             <td className="p-2">{item.qty}</td>
+                             <td className="p-2">{item.price}</td>
+                             <td className="p-2">{item.qty * item.price}</td>
+                             <td className="p-2 text-center">
+                               <button type="button" onClick={() => handleRemoveItem(item.productId)} className="text-red-500 hover:text-red-700">
+                                 <i className="fa-solid fa-trash-can text-base"></i>
+                               </button>
+                             </td>
+                           </tr>
+                         ))}
+                         {form.items.length === 0 && <tr><td colSpan="5" className="p-4 text-center text-slate-400">لا يوجد عناصر</td></tr>}
+                       </tbody>
+                     </table>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('paid')}</label>
+                    <input type="number" min="0" max={invoiceTotal} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={form.paidAmount} onChange={e=>setForm({...form, paidAmount: e.target.value})} />
+                  </div>
+                  <div className="p-2 bg-blue-50 text-blue-900 rounded font-bold text-lg flex justify-between items-center h-[42px]">
+                    <span>{t('total')}:</span>
+                    <span>{invoiceTotal}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-4">
+                  <input type="checkbox" id="einvoice" className="w-4 h-4" checked={form.eInvoiceRequired} onChange={e=>setForm({...form, eInvoiceRequired: e.target.checked})} />
+                  <label htmlFor="einvoice" className="text-sm font-medium text-slate-700">يتطلب فاتورة إلكترونية ضريبية</label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
+                </div>
+              </form>
+            </Modal>
           </div>
-        </header>
-        
-        <div className="flex-1 overflow-auto p-4 md:p-6 pb-20">
-          {view === 'dashboard' && renderDashboard()}
-          {view === 'invoices' && <InvoicesView />}
-          {view === 'inventory' && <InventoryView />}
-          {view === 'clients' && <ClientsView />}
-          {view === 'financials' && <FinanceView />}
-          {view === 'hr' && <HRView />}
-        </div>
-      </main>
+        );
+      };
 
-      {/* Global Modals */}
-      <ConfirmModal 
-        isOpen={confirmDialog.isOpen} 
-        onClose={() => setConfirmDialog({ isOpen: false, onConfirm: null })}
-        onConfirm={confirmDialog.onConfirm}
-        message={t('confirmDelete')}
-        t={t}
-      />
-    </div>
-  );
-}
+      const FinanceView = () => {
+        if (user.role !== 'admin') return <div className="p-4 text-center text-red-500">Access Denied</div>;
+
+        const [activeTab, setActiveTab] = useState('overview');
+        const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+        const [expenseForm, setExpenseForm] = useState({ name: '', amount: 0, date: new Date().toISOString().split('T')[0] });
+
+        const handleAddExpense = (e) => {
+          e.preventDefault();
+          addRecord('expenses', expenseForm);
+          setIsExpenseModalOpen(false);
+        };
+
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-slate-800">{t('financials')}</h2>
+            
+            <div className="flex gap-4 border-b border-slate-200">
+              <button onClick={()=>setActiveTab('overview')} className={`pb-2 px-1 font-medium ${activeTab==='overview'?'border-b-2 border-blue-600 text-blue-600':'text-slate-500'}`}>نظرة عامة</button>
+              <button onClick={()=>setActiveTab('expenses')} className={`pb-2 px-1 font-medium ${activeTab==='expenses'?'border-b-2 border-blue-600 text-blue-600':'text-slate-500'}`}>{t('expenses')}</button>
+              <button onClick={()=>setActiveTab('assets')} className={`pb-2 px-1 font-medium ${activeTab==='assets'?'border-b-2 border-blue-600 text-blue-600':'text-slate-500'}`}>{t('assets')}</button>
+            </div>
+
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-blue-500">
+                  <h3 className="text-lg font-bold text-slate-800 mb-4">{t('accrualBasis')} (ربح الفواتير الموقعة)</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between"><span className="text-slate-600">{t('revenue')}</span><span className="font-bold text-emerald-600">{financials.accrualRevenue.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('cogs')} (-)</span><span className="font-bold text-red-500">{financials.cogs.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('expenses')} (-)</span><span className="font-bold text-red-500">{financials.opex.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('payroll')} (-)</span><span className="font-bold text-red-500">{financials.payroll.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('monthlyDepreciation')} (-)</span><span className="font-bold text-red-500">{Math.round(financials.depreciation).toLocaleString()}</span></div>
+                    <div className="border-t pt-3 flex justify-between text-lg font-black mt-2">
+                      <span>{t('netProfit')}</span>
+                      <span className={financials.netProfitAccrual >= 0 ? 'text-emerald-600' : 'text-red-600'}>{Math.round(financials.netProfitAccrual).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-emerald-500">
+                  <h3 className="text-lg font-bold text-slate-800 mb-4">{t('cashBasis')} (ربح النقد المحصل)</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between"><span className="text-slate-600">{t('revenue')} (المحصل)</span><span className="font-bold text-emerald-600">{financials.cashRevenue.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('cogs')} (-)</span><span className="font-bold text-red-500">{financials.cogs.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('expenses')} (-)</span><span className="font-bold text-red-500">{financials.opex.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('payroll')} (-)</span><span className="font-bold text-red-500">{financials.payroll.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-600">{t('monthlyDepreciation')} (-)</span><span className="font-bold text-red-500">{Math.round(financials.depreciation).toLocaleString()}</span></div>
+                    <div className="border-t pt-3 flex justify-between text-lg font-black mt-2">
+                      <span>{t('netProfit')}</span>
+                      <span className={financials.netProfitCash >= 0 ? 'text-emerald-600' : 'text-red-600'}>{Math.round(financials.netProfitCash).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'expenses' && (
+               <div>
+                 <div className="flex justify-end mb-4">
+                    <button onClick={() => setIsExpenseModalOpen(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+                      <i className="fa-solid fa-plus text-lg"></i> إضافة مصروف
+                    </button>
+                 </div>
+                 <div className="bg-white rounded-lg shadow overflow-hidden w-full overflow-x-auto">
+                    <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
+                      <thead className="bg-slate-100 text-slate-700">
+                        <tr>
+                          <th className="p-3 border-b">{t('name')}</th>
+                          <th className="p-3 border-b">{t('date')}</th>
+                          <th className="p-3 border-b">المبلغ</th>
+                          <th className="p-3 border-b text-center">{t('settings')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {db.expenses.map(exp => (
+                          <tr key={exp.id} className="hover:bg-slate-50">
+                            <td className="p-3 font-medium">{exp.name}</td>
+                            <td className="p-3">{exp.date}</td>
+                            <td className="p-3 font-bold text-red-500">{exp.amount}</td>
+                            <td className="p-3 text-center">
+                              <button onClick={() => confirmDelete(() => deleteRecord('expenses', exp.id))} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                                <i className="fa-solid fa-trash-can text-lg"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                 </div>
+               </div>
+            )}
+
+            {activeTab === 'assets' && (
+               <div>
+                 <div className="bg-white rounded-lg shadow overflow-hidden w-full overflow-x-auto">
+                    <table className="w-full text-left border-collapse" dir={isRTL ? 'rtl' : 'ltr'}>
+                      <thead className="bg-slate-100 text-slate-700">
+                        <tr>
+                          <th className="p-3 border-b">{t('name')}</th>
+                          <th className="p-3 border-b">القيمة</th>
+                          <th className="p-3 border-b">{t('assetLifespan')}</th>
+                          <th className="p-3 border-b">{t('monthlyDepreciation')}</th>
+                          <th className="p-3 border-b text-center">{t('settings')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {db.assets.map(asset => (
+                          <tr key={asset.id} className="hover:bg-slate-50">
+                            <td className="p-3 font-medium">{asset.name}</td>
+                            <td className="p-3">{asset.value}</td>
+                            <td className="p-3">{asset.lifespan}</td>
+                            <td className="p-3 font-bold text-orange-500">{Math.round(asset.value / (asset.lifespan * 12))}</td>
+                            <td className="p-3 text-center">
+                              <button onClick={() => confirmDelete(() => deleteRecord('assets', asset.id))} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                                <i className="fa-solid fa-trash-can text-lg"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                 </div>
+               </div>
+            )}
+
+            <Modal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} title="إضافة مصروف">
+              <form onSubmit={handleAddExpense} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">البيان (إيجار، كهرباء، تسويق، ضرائب...)</label>
+                  <input required type="text" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={expenseForm.name} onChange={e=>setExpenseForm({...expenseForm, name: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">المبلغ</label>
+                  <input required type="number" min="0" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={expenseForm.amount} onChange={e=>setExpenseForm({...expenseForm, amount: e.target.value})} />
+                </div>
+                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">{t('date')}</label>
+                  <input required type="date" className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={expenseForm.date} onChange={e=>setExpenseForm({...expenseForm, date: e.target.value})} />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <button type="button" onClick={() => setIsExpenseModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">{t('cancel')}</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t('save')}</button>
+                </div>
+              </form>
+            </Modal>
+
+          </div>
+        );
+      };
+
+      const HRView = () => {
+        if (user.role !== 'admin') return <div className="p-4 text-center text-red-500">Access Denied</div>;
+
+        const handleEmpUpdate = (id, field, value) => {
+          updateRecord('employees', id, { [field]: Number(value) });
+        };
+
+        return (
+           <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800">{t('hr')}</h2>
+            </div>
+            <div className="bg-white rounded-lg shadow overflow-hidden w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]" dir={isRTL ? 'rtl' : 'ltr'}>
+                <thead className="bg-slate-100 text-slate-700">
+                  <tr>
+                    <th className="p-3 border-b">{t('name')}</th>
+                    <th className="p-3 border-b">{t('baseSalary')}</th>
+                    <th className="p-3 border-b">{t('incentives')} (+)</th>
+                    <th className="p-3 border-b">{t('deductions')} (-)</th>
+                    <th className="p-3 border-b">{t('netSalary')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {db.employees.map(emp => {
+                    const net = Number(emp.baseSalary) + Number(emp.incentives) - Number(emp.deductions);
+                    return (
+                      <tr key={emp.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-medium">{emp.name}</td>
+                        <td className="p-3">
+                          <input type="number" className="w-24 p-1 border rounded outline-none" value={emp.baseSalary} onChange={e=>handleEmpUpdate(emp.id, 'baseSalary', e.target.value)} />
+                        </td>
+                        <td className="p-3">
+                          <input type="number" className="w-24 p-1 border rounded text-emerald-600 outline-none" value={emp.incentives} onChange={e=>handleEmpUpdate(emp.id, 'incentives', e.target.value)} />
+                        </td>
+                        <td className="p-3">
+                           <input type="number" className="w-24 p-1 border rounded text-red-600 outline-none" value={emp.deductions} onChange={e=>handleEmpUpdate(emp.id, 'deductions', e.target.value)} />
+                        </td>
+                        <td className="p-3 font-bold text-blue-600">{net}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      };
+
+      // --- Main Layout ---
+      const navItems = [
+        { id: 'dashboard', iconClass: 'fa-solid fa-chart-pie', label: t('dashboard'), roles: ['admin', 'secretary'] },
+        { id: 'invoices', iconClass: 'fa-solid fa-file-invoice', label: t('invoices'), roles: ['admin', 'secretary'] },
+        { id: 'inventory', iconClass: 'fa-solid fa-box', label: t('inventory'), roles: ['admin', 'secretary'] },
+        { id: 'clients', iconClass: 'fa-solid fa-users', label: t('clients'), roles: ['admin', 'secretary'] },
+        { id: 'financials', iconClass: 'fa-solid fa-dollar-sign', label: t('financials'), roles: ['admin'] },
+        { id: 'hr', iconClass: 'fa-solid fa-briefcase', label: t('hr'), roles: ['admin'] },
+      ];
+
+      return (
+        <div className="min-h-screen h-screen bg-slate-100 flex flex-col md:flex-row w-full overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+          {/* Sidebar */}
+          <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col transition-all shrink-0 md:h-screen z-20">
+            <div className="p-4 flex items-center gap-3 border-b border-slate-800">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-calculator text-2xl"></i>
+              </div>
+              <div>
+                <h1 className="font-bold text-lg leading-tight">ROBOTECH</h1>
+                <p className="text-xs text-slate-400">ERP System</p>
+              </div>
+            </div>
+            
+            <nav className="flex-1 py-4 flex md:flex-col gap-1 px-3 overflow-x-auto md:overflow-y-auto overflow-y-hidden">
+              {navItems.filter(item => item.roles.includes(user.role)).map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setView(item.id)}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-sm font-medium shrink-0 whitespace-nowrap ${
+                    view === item.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <i className={`${item.iconClass} text-xl w-6 text-center`}></i>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="p-4 border-t border-slate-800 text-sm hidden md:block">
+              <div className="flex items-center justify-between mb-4">
+                 <span className="text-slate-400 truncate pr-2">{user.name}</span>
+                 <span className={`px-2 py-1 rounded text-xs shrink-0 ${user.role === 'admin' ? 'bg-purple-900 text-purple-200' : 'bg-emerald-900 text-emerald-200'}`}>
+                   {user.role}
+                 </span>
+              </div>
+              <button onClick={() => setUser(null)} className="flex items-center gap-2 text-red-400 hover:text-red-300 w-full">
+                <i className="fa-solid fa-right-from-bracket text-lg"></i> {t('logout')}
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 flex flex-col h-[calc(100vh-80px)] md:h-screen w-full relative">
+            <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-4">
+                 <h2 className="text-xl font-semibold text-slate-800">{t(view)}</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="px-3 py-1 bg-slate-100 rounded text-sm font-medium text-slate-600 hover:bg-slate-200 transition">
+                  {lang === 'ar' ? 'EN' : 'عربي'}
+                </button>
+                <button onClick={() => setUser(null)} className="md:hidden flex items-center gap-2 text-red-500 hover:text-red-600 bg-red-50 px-2 py-1 rounded">
+                  <i className="fa-solid fa-right-from-bracket"></i>
+                </button>
+              </div>
+            </header>
+            
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 w-full">
+              {view === 'dashboard' && renderDashboard()}
+              {view === 'invoices' && <InvoicesView />}
+              {view === 'inventory' && <InventoryView />}
+              {view === 'clients' && <ClientsView />}
+              {view === 'financials' && <FinanceView />}
+              {view === 'hr' && <HRView />}
+            </div>
+          </main>
+
+          {/* Global Modals */}
+          <ConfirmModal 
+            isOpen={confirmDialog.isOpen} 
+            onClose={() => setConfirmDialog({ isOpen: false, onConfirm: null })}
+            onConfirm={confirmDialog.onConfirm}
+            message={t('confirmDelete')}
+            t={t}
+          />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
