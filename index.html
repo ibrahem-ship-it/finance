@@ -15,6 +15,10 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   
+  <!-- Firebase SDK (للاتصال بقاعدة البيانات السحابية) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
   <!-- Babel (لترجمة كود React داخل المتصفح) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
@@ -29,6 +33,24 @@
 
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
+
+    // --- إعدادات قاعدة البيانات السحابية (Firebase) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3g2PORYEHAesyeFXX_4ntRHn6FTnCOJQ",
+      authDomain: "robotech-erp-61d30.firebaseapp.com",
+      projectId: "robotech-erp-61d30",
+      storageBucket: "robotech-erp-61d30.firebasestorage.app",
+      messagingSenderId: "470421617487",
+      appId: "1:470421617487:web:8a8357228fbc2b4a2e233a",
+      measurementId: "G-QG7JX1C4QL"
+    };
+
+    // تهيئة الاتصال بالسحابة
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const firestore = firebase.firestore();
+    const dbRef = firestore.collection('robotech_erp').doc('main_database');
 
     // --- i18n Translations ---
     const dict = {
@@ -255,24 +277,71 @@
         }
       };
 
+      // --- الإعدادات السحابية Firebase ---
       const [db, setDb] = useState(initialData);
+      const [isDbLoaded, setIsDbLoaded] = useState(false);
+      const [dbError, setDbError] = useState(null); // مسار جديد لمعالجة الأخطاء السحابية
+
+      // جلب البيانات لحظياً من السحابة والمزامنة التلقائية
+      useEffect(() => {
+        const unsubscribe = dbRef.onSnapshot((doc) => {
+          if (doc.exists) {
+            setDb(doc.data());
+          } else {
+            dbRef.set(initialData).catch(err => {
+               console.error("Firebase Write Error:", err);
+               setDbError(err.message);
+            });
+            setDb(initialData);
+          }
+          setIsDbLoaded(true);
+          setDbError(null); // مسح الأخطاء السابقة إن وجدت
+        }, (error) => {
+          console.error("خطأ في الاتصال بقاعدة البيانات:", error);
+          setDbError(error.message);
+          setIsDbLoaded(true); // لإنهاء شاشة التحميل وعرض الخطأ
+        });
+
+        return () => unsubscribe();
+      }, []);
+
       const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null });
 
       const confirmDelete = (action) => {
         setConfirmDialog({ isOpen: true, onConfirm: action });
       };
 
+      // دوال تحديث البيانات السحابية
+      const syncToFirebase = (newDb) => {
+        dbRef.set(newDb).catch(err => {
+            console.error("فشل الحفظ:", err);
+            alert("حدث خطأ أثناء حفظ البيانات: " + err.message);
+        });
+      };
+
       const addRecord = (collection, record) => {
-        setDb(prev => ({ ...prev, [collection]: [...prev[collection], { ...record, id: Date.now() }] }));
+        setDb(prev => {
+          const newDb = { ...prev, [collection]: [...prev[collection], { ...record, id: Date.now() }] };
+          syncToFirebase(newDb);
+          return newDb;
+        });
       };
       
       const updateRecord = (collection, id, updatedFields) => {
-        setDb(prev => ({ ...prev, [collection]: prev[collection].map(item => item.id === id ? { ...item, ...updatedFields } : item) }));
+        setDb(prev => {
+          const newDb = { ...prev, [collection]: prev[collection].map(item => item.id === id ? { ...item, ...updatedFields } : item) };
+          syncToFirebase(newDb);
+          return newDb;
+        });
       };
       
       const deleteRecord = (collection, id) => {
         if (user?.role !== 'admin') return;
-        setDb(prev => ({ ...prev, [collection]: prev[collection].filter(item => item.id !== id) }));
+        setDb(prev => {
+          const newDb = { ...prev, [collection]: prev[collection].filter(item => item.id !== id) };
+          syncToFirebase(newDb);
+          return newDb;
+        });
       };
 
       const financials = useMemo(() => {
@@ -301,6 +370,49 @@
 
         return { accrualRevenue, cashRevenue, cogs, opex, payroll, depreciation, netProfitAccrual, netProfitCash };
       }, [db.invoices, db.expenses, db.assets, db.employees, db.products]);
+
+      // --- شاشة عرض الخطأ السحابي بوضوح ---
+      if (dbError) {
+         return (
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 w-full" dir="rtl">
+            <i className="fa-solid fa-database text-6xl text-red-500 mb-4"></i>
+            <h1 className="text-2xl font-bold text-slate-800 mb-2">قاعدة البيانات غير مفعلة!</h1>
+            <p className="text-slate-600 mb-6 text-center max-w-lg">
+              الكود الخاص بك يحاول الاتصال بقاعدة البيانات بنجاح، لكن منصة Firebase ترفض الطلب لأنه لم يتم تفعيل خدمة <b>Firestore</b> في مشروعك.
+            </p>
+            
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full text-right border-r-4 border-blue-500">
+              <h2 className="font-bold text-lg text-blue-600 mb-3">خطوات الحل (تأخذ دقيقة واحدة):</h2>
+              <ol className="list-decimal list-inside space-y-3 text-slate-700 leading-relaxed">
+                <li>افتح موقع <a href="https://console.firebase.google.com/" target="_blank" className="text-blue-500 underline font-bold">Firebase Console</a>.</li>
+                <li>ادخل إلى مشروعك الذي يحمل اسم <code>robotech-erp</code>.</li>
+                <li>من القائمة الجانبية اليسرى، اضغط على <b>Build</b> ثم اختر <b>Firestore Database</b>.</li>
+                <li>اضغط على الزر الكبير <b>Create database</b>.</li>
+                <li><b>خطوة مهمة:</b> اختر وضع الاختبار <b>Start in test mode</b> (حتى يسمح بحفظ البيانات) واضغط Next.</li>
+                <li>اختر أي سيرفر (مثل Europe أو US) واضغط <b>Enable</b>.</li>
+              </ol>
+              <div className="mt-6 p-3 bg-red-50 text-red-700 rounded text-sm text-left font-mono break-all" dir="ltr">
+                 {dbError}
+              </div>
+            </div>
+            
+            <button onClick={() => window.location.reload()} className="mt-8 bg-blue-600 text-white px-6 py-3 rounded shadow hover:bg-blue-700 transition flex items-center gap-2">
+              <i className="fa-solid fa-rotate-right"></i>
+              تحديث الصفحة بعد التفعيل
+            </button>
+          </div>
+         );
+      }
+
+      // --- شاشة التحميل السحابية ---
+      if (!isDbLoaded) {
+        return (
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 w-full">
+            <i className="fa-solid fa-spinner fa-spin text-5xl text-blue-600 mb-4"></i>
+            <p className="text-slate-600 font-bold text-xl mt-4">جاري الاتصال بالسحابة...</p>
+          </div>
+        );
+      }
 
       // --- Login Screen ---
       if (!user) {
